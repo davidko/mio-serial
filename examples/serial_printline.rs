@@ -14,7 +14,7 @@ const SERIAL_TOKEN: Token = Token(0);
 #[cfg(unix)]
 const DEFAULT_TTY: &str = "/dev/ttyUSB0";
 #[cfg(windows)]
-const DEFAULT_TTY: &str = "COM1";
+const DEFAULT_TTY: &str = "COM3";
 
 #[cfg(unix)]
 fn ready_of_interest() -> Ready {
@@ -43,9 +43,10 @@ pub fn main() {
     let mut events = Events::with_capacity(1024);
 
     // Create the listener
-    let settings = mio_serial::SerialPortSettings::default();
+    let mut settings = mio_serial::SerialPortSettings::default();
+    settings.baud_rate = mio_serial::BaudRate::Baud115200;
 
-    println!("Opening {} at 9600,8N1", tty_path);
+    println!("Opening {} at 115200,8N1", tty_path);
     let mut rx = mio_serial::Serial::from_path(&tty_path, &settings).unwrap();
 
     poll.register(&rx,
