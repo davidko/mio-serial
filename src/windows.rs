@@ -16,6 +16,9 @@ use serialport::windows::COMPort;
 use mio::{Evented, Poll, PollOpt, Ready, Token};
 use mio_named_pipes::NamedPipe;
 
+fn would_block() -> io::Error {
+    io::Error::new(io::ErrorKind::WouldBlock, "would block")
+}
 
 /// Windows serial port
 pub struct Serial {
@@ -287,7 +290,16 @@ impl SerialPort for Serial {
 
 impl Read for Serial {
     fn read(&mut self, bytes: &mut [u8]) -> io::Result<usize> {
-        self.pipe.read(bytes)
+        let res = self.pipe.read(bytes);
+        if let Ok(size) = res {
+            if size == 0 {
+                Err(would_block())
+            } else {
+                Ok(size)
+            }
+        } else {
+            res
+        }
     }
 }
 
